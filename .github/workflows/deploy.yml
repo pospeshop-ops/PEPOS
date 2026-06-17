@@ -7,7 +7,7 @@ on:
     branches: [ "main", "master" ]
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
   statuses: write
 
@@ -23,19 +23,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install Dependencies
-        run: |
-          npm ci || npm install
+        run: npm install
 
       - name: Run Linter Validation
-        run: |
-          npm run lint
+        run: npm run lint
 
       - name: Build Production Bundle
-        run: |
-          npm run build
+        run: npm run build
 
       - name: Deploy Production to Netlify
         uses: nwtgck/actions-netlify@v3.0
@@ -44,9 +40,8 @@ jobs:
           production-branch: 'main'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deploy from GitHub Actions (Commit: ${{ github.sha }})"
-          enable-pull-request-comment: true
-          enable-commit-comment: true
-          overwrites-pull-request-comment: true
+          enable-pull-request-comment: false
+          enable-commit-comment: false
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
