@@ -16,6 +16,7 @@ export function PrintInvoiceModal({ bill, onClose }: PrintInvoiceModalProps) {
   const [printerFormat, setPrinterFormat] = useState<"58mm" | "4x6">("58mm");
   const [showHardwareGuide, setShowHardwareGuide] = useState<boolean>(false);
   const [isDirectUSBConnecting, setIsDirectUSBConnecting] = useState<boolean>(false);
+  const [webUsbError, setWebUsbError] = useState<string | null>(null);
 
   const formatLKR = (amount: number) => {
     return new Intl.NumberFormat("si-LK", {
@@ -28,9 +29,10 @@ export function PrintInvoiceModal({ bill, onClose }: PrintInvoiceModalProps) {
   // Direct USB Printing via WebUSB with ESC/POS commands
   const handleDirectUSBPrint = async () => {
     setIsDirectUSBConnecting(true);
+    setWebUsbError(null);
     try {
       if (!("usb" in navigator)) {
-        alert(
+        setWebUsbError(
           "WebUSB API is not supported in this browser environment. Please open the app in a secure context (HTTPS) on Google Chrome or Microsoft Edge."
         );
         setIsDirectUSBConnecting(false);
@@ -119,7 +121,7 @@ export function PrintInvoiceModal({ bill, onClose }: PrintInvoiceModalProps) {
       );
 
       if (!endpoint) {
-        alert(
+        setWebUsbError(
           "Direct USB Endpoint not found. Ensure standard receipt driver is using native RAW protocol. We will fall back to using standard printing."
         );
         setIsDirectUSBConnecting(false);
@@ -130,9 +132,12 @@ export function PrintInvoiceModal({ bill, onClose }: PrintInvoiceModalProps) {
       alert("Direct thermal invoice payload safely printed on Port_#0010.Hub_#0003.");
     } catch (err: any) {
       console.warn("Direct USB setup failed/dismissed:", err);
-      alert(
-        `WebUSB Connection: ${err.message || err}. For Windows/Android standard setup, click 'Standard Browser Print' and choose your 58mm POS printer; browser handles interface translation automatically!`
-      );
+      const errMsg = err.message || String(err);
+      if (errMsg.toLowerCase().includes("access denied")) {
+        setWebUsbError("access-denied-conflict");
+      } else {
+        setWebUsbError(errMsg);
+      }
     } finally {
       setIsDirectUSBConnecting(false);
     }
@@ -418,6 +423,40 @@ export function PrintInvoiceModal({ bill, onClose }: PrintInvoiceModalProps) {
             </div>
             <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[9px] font-bold">Port_#0010.Hub_#0003</span>
           </div>
+
+          {webUsbError && (
+            <div className="p-3.5 bg-rose-50 border border-rose-100 rounded-xl space-y-2 text-[11px] leading-relaxed text-slate-700 font-sans shadow-sm">
+              <p className="font-bold text-rose-800 border-b border-rose-100 pb-1 flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse inline-block" />
+                Connection Error on Port_#0010.Hub_#0003
+              </p>
+              {webUsbError === "access-denied-conflict" ? (
+                <div className="space-y-2 text-slate-600">
+                  <p className="font-semibold text-rose-950">
+                    ⚠️ Connection Blocked (Access Denied)
+                  </p>
+                  <p>
+                    Your operating system (Windows/Android/macOS) is currently claiming this printer driver (Active spooler/driver conflict detected).
+                  </p>
+                  <div className="bg-white/80 p-2.5 rounded-lg border border-rose-100 space-y-1.5 text-xs">
+                    <p className="font-bold text-teal-800">💡 Easy Resolution Options:</p>
+                    <p>
+                      <strong>1. Recommended:</strong> Click the green <strong>"Standard Browser Print"</strong> button below. It prints beautifully using your existing driver on 58mm paper rolls with zero setup!
+                    </p>
+                    <p>
+                      <strong>2. For WebUSB direct mode:</strong> Use the utility <strong>Zadig</strong> to switch the thermal printer driver to <strong>WinUSB</strong>.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="font-medium text-rose-950">Error details:</p>
+                  <p className="font-mono text-[10px] bg-white/60 p-2 rounded border border-rose-100 break-all">{webUsbError}</p>
+                  <p className="mt-1 text-slate-500">Please use the green <strong>Standard Browser Print</strong> option for automatic driver-level compatibility!</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {showHardwareGuide && (
             <div className="p-3 bg-white border border-teal-100 rounded-xl space-y-2 text-[11px] leading-relaxed text-slate-600 font-sans shadow-inner">
