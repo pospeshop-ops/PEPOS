@@ -25,7 +25,9 @@ export function PrintInvoiceModal({ bill, onClose }: PrintInvoiceModalProps) {
       nav.usb.getDevices().then((devices: any[]) => {
         setPairedDeviceList(devices);
         if (devices.length > 0) {
-          setUsbDevice(devices[0]);
+          // Prioritize your configured VID 0483 & PID 5840 printer if present
+          const targetPrinter = devices.find(d => d.vendorId === 0x0483 && d.productId === 0x5840);
+          setUsbDevice(targetPrinter || devices[0]);
         }
       }).catch((err: any) => {
         console.warn("Could not retrieve USB devices list:", err);
@@ -357,8 +359,14 @@ export function PrintInvoiceModal({ bill, onClose }: PrintInvoiceModalProps) {
       let device = usbDevice;
 
       if (!device) {
-        // Request visual pairing if not already selected
-        device = await nav.usb.requestDevice({ filters: [] });
+        // Request visual pairing with exact VID/PID filters to highlight client's custom STM printer
+        device = await nav.usb.requestDevice({
+          filters: [
+            { vendorId: 0x0483, productId: 0x5840 }, // Your printer's exact hardware ID
+            { vendorId: 0x0483 },                   // STMicroelectronics devices
+            { classCode: 7 }                        // Any USB printer Class
+          ]
+        });
         setUsbDevice(device);
         // Refresh registered device list
         const updatedDevices = await nav.usb.getDevices();
@@ -536,7 +544,13 @@ export function PrintInvoiceModal({ bill, onClose }: PrintInvoiceModalProps) {
       return;
     }
     try {
-      const device = await nav.usb.requestDevice({ filters: [] });
+      const device = await nav.usb.requestDevice({
+        filters: [
+          { vendorId: 0x0483, productId: 0x5840 }, // Your printer's exact hardware ID
+          { vendorId: 0x0483 },                   // STMicroelectronics devices
+          { classCode: 7 }                        // Any USB printer Class
+        ]
+      });
       setUsbDevice(device);
       const devices = await nav.usb.getDevices();
       setPairedDeviceList(devices);
