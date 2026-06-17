@@ -1,0 +1,38 @@
+{
+  "name": "PE Computers & BookShop POS",
+  "short_name": "PE POS",
+  "description": "Premium Retail Point of Sale and inventory system styled for PE Computers & BookShop with custom inventory management and analytics.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "72x72 96x96 128x128 144x144 152x152 192x192 384x384 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "72x72 96x96 128x128 144x144 152x152 192x192 384x384 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "finance"],
+  "shortcuts": [
+    {
+      "name": "Point of Sale",
+      "url": "/?tab=pos",
+      "description": "Open Cashier Checkout tab directly"
+    },
+    {
+      "name": "Analytics View",
+      "url": "/?tab=analytics",
+      "description": "Open sales registry & performance graphics"
+    }
+  ]
+}
