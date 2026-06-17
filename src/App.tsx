@@ -14,7 +14,8 @@ import {
   HelpCircle,
   Calendar,
   Sparkles,
-  Info
+  Info,
+  Download
 } from "lucide-react";
 
 import { Product, CartItem, Bill, BillItem } from "./types";
@@ -40,6 +41,30 @@ export default function App() {
   // Modes & Notifications for high operational density
   const [managerMode, setManagerMode] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "info" } | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      showToastForDuration("App successfully installed to your device!", "success");
+    }
+    setDeferredPrompt(null);
+  };
 
   const showToastForDuration = (message: string, type: "success" | "info" = "success") => {
     setToast({ message, type });
@@ -401,6 +426,16 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4 text-xs font-semibold text-slate-400 font-mono">
+            {deferredPrompt && (
+              <button
+                id="pwa-install-header-btn"
+                onClick={handleInstallClick}
+                className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-slate-100 border border-teal-400/20 rounded-xl px-4 py-2.5 shadow-md shadow-teal-900/40 cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Download className="w-3.5 h-3.5 text-white" />
+                <span>Install PC / Mobile App</span>
+              </button>
+            )}
             <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5">
               <Calendar className="w-3.5 h-3.5 text-teal-400" />
               <span>Sri Lanka: LKR Prices Enabled</span>

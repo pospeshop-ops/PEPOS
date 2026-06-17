@@ -1,0 +1,25 @@
+{
+  "short_name": "PE Bookshop",
+  "name": "PE Computers & Bookshop POS",
+  "description": "Ultra-fast offline point of sale and inventory management system for PE Computers & Bookshop.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#0d9488",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity"]
+}

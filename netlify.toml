@@ -2,6 +2,10 @@
   command = "npm run build"
   publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_VERSION = "10"
+
 # Direct all route requests to index.html so Vite's client-side router handles navigation
 [[redirects]]
   from = "/*"
