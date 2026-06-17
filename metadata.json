@@ -1,0 +1,6 @@
+{
+  "name": "PE Computers & BookShop POS",
+  "description": "Premium retail point of sale (POS) styled for PE Computers & BookShop with custom inventory management and visual profit analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
