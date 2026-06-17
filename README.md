@@ -2,17 +2,15 @@
 
 A high-performance, single-screen Point of Sale (POS) and inventory control system specialized for PE Computers & Bookshop.
 
-## 🚀 Deployment Options
+## 🚀 Easy Netlify Deployment
 
-We have prepared pre-configured setup scripts for both **GitHub** and **Netlify** to make deployments and continuous integration direct and hassle-free.
+We have pre-configured a continuous deployment pipeline using Netlify's direct Git connection.
 
----
+### Continuous Deployment via GitHub & Netlify (Recommended)
 
-### Option 1: Direct Netlify Continuous Git Connection (Recommended)
+This is the absolute simplest way to run your point-of-sale. Netlify will automatically rebuild and publish your application every time you make changes to GitHub.
 
-This is the absolute simplest way to deploy. Netlify will automatically detect updates whenever you push code changes to GitHub.
-
-1. **Upload your code to GitHub**:
+1. **Upload your code to a GitHub Repository**:
    - Create a new, blank repository on GitHub.
    - Initialize git locally:
      ```bash
@@ -24,27 +22,13 @@ This is the absolute simplest way to deploy. Netlify will automatically detect u
      git push -u origin main
      ```
 
-2. **Connect with Netlify**:
+2. **Connect your Repository within Netlify**:
    - Go to your [Netlify Dashboard](https://app.netlify.com/).
    - Click **Add new site** -> **Import an existing project**.
-   - Choose **GitHub** and authorize the access.
+   - Choose **GitHub** and authorize access.
    - Select your POS repository.
-   - Netlify will automatically read the `netlify.toml` file we configured in this project.
+   - Netlify will automatically detect the pre-configured `netlify.toml` file we loaded in this workspace.
    - Click **Deploy site**.
 
-Done! Your POS is now live and will auto-rebuild on any push to GitHub.
+Done! Your point-of-sale application is now live on the internet, automatically updates, has 404 router redirects prepared, and is ready for PWA offline installer caching.
 
----
-
-### Option 2: Automated Deployment via GitHub Actions (CI/CD)
-
-If you'd like GitHub itself to run validation tests and compile the bundle before pushing to Netlify, we configured a GitHub Actions workflow in `.github/workflows/deploy.yml`.
-
-1. Go to your **Netlify User Settings** -> **Applications** -> **OAuth applications** -> **Personal access tokens** and create a token. This is your `NETLIFY_AUTH_TOKEN`.
-2. Go to your active Netlify site's **Site settings** -> **Site details** and copy your **Site ID** (API ID). This is your `NETLIFY_SITE_ID`.
-3. Go to your **GitHub Repository** -> **Settings** -> **Secrets and variables** -> **Actions**.
-4. Add two new repository secrets:
-   - `NETLIFY_AUTH_TOKEN` (The personal access token generated in step 1)
-   - `NETLIFY_SITE_ID` (The API/Site ID copied in step 2)
-
-As soon as these secrets are set, any push to the `main` branch will automatically launch a GitHub Action that builds, tests, and deploys your shop application!
