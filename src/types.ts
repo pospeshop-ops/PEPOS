@@ -18,6 +18,7 @@ export interface CartItem {
   price: number;
   cost: number;
   quantity: number;
+  warranty?: string;
 }
 
 export interface BillItem {
@@ -25,6 +26,7 @@ export interface BillItem {
   quantity: number;
   price: number;
   cost: number;
+  warranty?: string;
 }
 
 export interface Bill {

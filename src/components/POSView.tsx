@@ -21,8 +21,9 @@ interface POSViewProps {
   categories: string[];
   cart: CartItem[];
   onAddToCart: (product: Product) => void;
-  onAddQuickSale: (name: string, price: number) => void;
+  onAddQuickSale: (name: string, price: number, qtyInput?: number, warrantyInput?: string) => void;
   onUpdateCartQty: (id: string, qty: number) => void;
+  onUpdateCartWarranty: (id: string, warranty: string) => void;
   onRemoveFromCart: (id: string) => void;
   onClearCart: () => void;
   onCheckout: (discountPercent: number) => void;
@@ -35,6 +36,7 @@ export function POSView({
   onAddToCart,
   onAddQuickSale,
   onUpdateCartQty,
+  onUpdateCartWarranty,
   onRemoveFromCart,
   onClearCart,
   onCheckout,
@@ -46,6 +48,8 @@ export function POSView({
   // Quick Sale states
   const [quickName, setQuickName] = useState("");
   const [quickPrice, setQuickPrice] = useState("");
+  const [quickQty, setQuickQty] = useState("1");
+  const [quickWarranty, setQuickWarranty] = useState("");
 
   // Discount state
   const [discountInput, setDiscountInput] = useState("");
@@ -62,6 +66,8 @@ export function POSView({
   const handleQuickAdd = (e: FormEvent) => {
     e.preventDefault();
     const priceNum = parseFloat(quickPrice);
+    const qtyNum = parseInt(quickQty);
+
     if (!quickName.trim()) {
       alert("Please enter a quick sale item name.");
       return;
@@ -70,9 +76,13 @@ export function POSView({
       alert("Please enter a valid price.");
       return;
     }
-    onAddQuickSale(quickName.trim(), priceNum);
+    const finalQty = isNaN(qtyNum) || qtyNum <= 0 ? 1 : qtyNum;
+    onAddQuickSale(quickName.trim(), priceNum, finalQty, quickWarranty.trim());
+    
     setQuickName("");
     setQuickPrice("");
+    setQuickQty("1");
+    setQuickWarranty("");
     setTimeout(() => {
       nameInputRef.current?.focus();
     }, 50);
@@ -124,7 +134,7 @@ export function POSView({
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-            <div className="sm:col-span-6 relative">
+            <div className="sm:col-span-5 relative">
               <label htmlFor="quick-sale-name" className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                 Scan or Type Item Name
               </label>
@@ -165,9 +175,9 @@ export function POSView({
               </datalist>
             </div>
             
-            <div className="sm:col-span-3">
+            <div className="sm:col-span-2">
               <label htmlFor="quick-sale-price" className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                Cost Price (LKR)
+                Sell Price (LKR)
               </label>
               <input
                 ref={priceInputRef}
@@ -179,15 +189,53 @@ export function POSView({
                 className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none transition font-mono font-bold"
               />
             </div>
+
+            <div className="sm:col-span-2">
+              <label htmlFor="quick-sale-qty" className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                Qty
+              </label>
+              <input
+                id="quick-sale-qty"
+                type="number"
+                min="1"
+                value={quickQty}
+                onChange={(e) => setQuickQty(e.target.value)}
+                placeholder="1"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none transition font-sans font-bold text-center"
+              />
+            </div>
+
+            <div className="sm:col-span-3">
+              <label htmlFor="quick-sale-warranty" className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                Warranty Option
+              </label>
+              <input
+                id="quick-sale-warranty"
+                type="text"
+                placeholder="Ex: 1 Year / None"
+                list="quick-sale-warranty-options"
+                value={quickWarranty}
+                onChange={(e) => setQuickWarranty(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-teal-500 focus:outline-none transition font-semibold text-slate-700"
+              />
+              <datalist id="quick-sale-warranty-options">
+                <option value="No Warranty" />
+                <option value="3 Months Store Warranty" />
+                <option value="6 Months Parts & Service" />
+                <option value="1 Year Store Warranty" />
+                <option value="2 Years Brand Warranty" />
+                <option value="3 Years Panel & Parts" />
+              </datalist>
+            </div>
             
-            <div className="sm:col-span-3 flex items-end">
+            <div className="sm:col-span-12 flex justify-end">
               <button
                 id="quick-sale-add-btn"
                 type="submit"
-                className="w-full bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 py-2.5 cursor-pointer shadow-sm"
+                className="bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 py-2.5 px-6 cursor-pointer shadow-sm hover:shadow active:scale-95 duration-100"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Add & Log
+                Add to Checkout
               </button>
             </div>
           </div>
@@ -249,51 +297,87 @@ export function POSView({
             </div>
           ) : (
             cart.map((item) => (
-              <div key={item.id} className="py-3 px-2 flex items-center justify-between gap-2 bg-white rounded-xl mb-1.5 border border-slate-100">
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-xs font-bold text-slate-800 truncate" title={item.name}>
-                    {item.name}
-                  </h4>
-                  <div className="text-[10px] font-semibold text-slate-400 mt-0.5">
-                    {formatLKR(item.price)} × {item.quantity}
+              <div key={item.id} className="p-3.5 bg-white rounded-xl mb-2 border border-slate-100 flex flex-col gap-2.5 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs font-bold text-slate-800 break-words" title={item.name}>
+                      {item.name}
+                    </h4>
+                    <div className="text-[10px] font-semibold text-slate-400 mt-0.5">
+                      Base Price: {formatLKR(item.price)}
+                    </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {/* Quantity Controls */}
-                  <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
-                    <button
-                      onClick={() => onUpdateCartQty(item.id, item.quantity - 1)}
-                      className="p-1 text-slate-500 hover:text-slate-800 disabled:opacity-40 transition cursor-pointer"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </button>
-                    <span className="w-7 text-center text-xs font-bold text-slate-700">
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={() => onUpdateCartQty(item.id, item.quantity + 1)}
-                      className="p-1 text-slate-500 hover:text-slate-800 transition cursor-pointer"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </button>
-                  </div>
-
-                  {/* Pricing block */}
-                  <div className="text-right min-w-[70px]">
-                    <span className="text-xs font-bold text-teal-800">
-                      {formatLKR(item.price * item.quantity)}
-                    </span>
-                  </div>
-
+                  
                   {/* Remove action */}
                   <button
                     onClick={() => onRemoveFromCart(item.id)}
-                    className="text-slate-300 hover:text-rose-600 p-1 rounded-lg transition cursor-pointer"
+                    className="text-slate-350 hover:text-rose-600 p-1 rounded-lg transition cursor-pointer hover:bg-rose-50"
                     title="Remove item"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
+                </div>
+
+                {/* Sub row containing Interactive Quantity input & Warranty details & Line Total */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                  
+                  {/* Quantity and inputs */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Qty:</span>
+                    <div className="flex items-center bg-slate-50 rounded-lg px-1 py-0.5 border border-slate-200">
+                      <button
+                        onClick={() => onUpdateCartQty(item.id, item.quantity - 1)}
+                        className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-40 transition cursor-pointer"
+                        disabled={item.quantity <= 1}
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          onUpdateCartQty(item.id, isNaN(val) || val <= 0 ? 1 : val);
+                        }}
+                        className="w-8 text-center text-xs font-bold text-slate-800 bg-transparent border-none focus:outline-none focus:ring-0 p-0 font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <button
+                        onClick={() => onUpdateCartQty(item.id, item.quantity + 1)}
+                        className="p-1 text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Warranty Detail */}
+                  <div className="flex items-center gap-1.5 flex-1 max-w-[170px] min-w-[120px]">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Warranty:</span>
+                    <input
+                      type="text"
+                      placeholder="No Warranty / Option"
+                      list={`cart-warranty-options-${item.id}`}
+                      value={item.warranty || ""}
+                      onChange={(e) => onUpdateCartWarranty(item.id, e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:ring-1 focus:ring-teal-500 rounded-lg px-2 py-1 text-[11px] font-medium text-slate-700 focus:outline-none transition-all placeholder:text-[9px]"
+                    />
+                    <datalist id={`cart-warranty-options-${item.id}`}>
+                      <option value="No Warranty" />
+                      <option value="3 Months Store Warranty" />
+                      <option value="6 Months Parts & Service" />
+                      <option value="1 Year Store Warranty" />
+                      <option value="2 Years Brand Warranty" />
+                      <option value="3 Years Panel & Parts" />
+                    </datalist>
+                  </div>
+
+                  {/* Pricing block */}
+                  <div className="text-right min-w-[60px]">
+                    <span className="text-xs font-bold text-teal-800 font-mono">
+                      {formatLKR(item.price * item.quantity)}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))

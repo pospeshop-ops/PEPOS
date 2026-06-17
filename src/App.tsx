@@ -193,9 +193,12 @@ export default function App() {
     });
   };
 
-  const handleAddQuickSale = (name: string, price: number) => {
+  const handleAddQuickSale = (name: string, price: number, qtyInput?: number, warrantyInput?: string) => {
     const trimmedName = name.trim();
     if (!trimmedName) return;
+
+    const finalQty = qtyInput && qtyInput > 0 ? qtyInput : 1;
+    const finalWarranty = warrantyInput && warrantyInput.trim() ? warrantyInput.trim() : "No Warranty";
 
     // Check if product already exists in stock catalog (case-insensitive)
     const existingProduct = products.find(
@@ -204,8 +207,37 @@ export default function App() {
 
     if (existingProduct) {
       // It exists! Add the catalog product to the cart directly
-      handleAddToCart(existingProduct);
-      showToastForDuration(`Item "${existingProduct.name}" found in catalog. Added unit to cart.`);
+      setCart((prevCart) => {
+        const existing = prevCart.find((item) => item.id === existingProduct.id);
+        if (existing) {
+          if (existing.quantity + finalQty > existingProduct.stock) {
+            alert(`Insufficient stock. Only ${existingProduct.stock} units are available.`);
+            return prevCart;
+          }
+          return prevCart.map((item) => 
+            item.id === existingProduct.id 
+              ? { ...item, quantity: item.quantity + finalQty, warranty: finalWarranty } 
+              : item
+          );
+        } else {
+          if (finalQty > existingProduct.stock) {
+            alert(`Insufficient stock. Only ${existingProduct.stock} units are available.`);
+            return prevCart;
+          }
+          return [
+            ...prevCart,
+            {
+              id: existingProduct.id,
+              name: existingProduct.name,
+              price: existingProduct.salePrice,
+              cost: existingProduct.cost,
+              quantity: finalQty,
+              warranty: finalWarranty
+            }
+          ];
+        }
+      });
+      showToastForDuration(`Item "${existingProduct.name}" added to cart (${finalQty}x).`);
       return;
     }
 
@@ -241,12 +273,19 @@ export default function App() {
         name: trimmedName,
         price,
         cost: calculatedCost,
-        quantity: 1,
+        quantity: finalQty,
+        warranty: finalWarranty
       },
     ]);
 
     // Show a highly professional, non-intrusive on-screen success prompt
-    showToastForDuration(`New item "${trimmedName}" detected & registered to inventory with 100 units!`);
+    showToastForDuration(`New item "${trimmedName}" registered to inventory (${finalQty}x in cart)!`);
+  };
+
+  const handleUpdateCartWarranty = (id: string, warranty: string) => {
+    setCart((prevCart) =>
+      prevCart.map((item) => (item.id === id ? { ...item, warranty } : item))
+    );
   };
 
   const handleUpdateCartQty = (id: string, qty: number) => {
@@ -314,7 +353,8 @@ export default function App() {
             name: prod.name,
             quantity: cartMatch.quantity,
             price: prod.salePrice,
-            cost: prod.cost
+            cost: prod.cost,
+            warranty: cartMatch.warranty || "No Warranty"
           });
           return {
             ...prod,
@@ -333,7 +373,8 @@ export default function App() {
             name: cItem.name,
             quantity: cItem.quantity,
             price: cItem.price,
-            cost: cItem.cost
+            cost: cItem.cost,
+            warranty: cItem.warranty || "No Warranty"
           });
         }
       });
@@ -584,6 +625,7 @@ export default function App() {
             onAddToCart={handleAddToCart}
             onAddQuickSale={handleAddQuickSale}
             onUpdateCartQty={handleUpdateCartQty}
+            onUpdateCartWarranty={handleUpdateCartWarranty}
             onRemoveFromCart={handleRemoveFromCart}
             onClearCart={handleClearCart}
             onCheckout={handleCheckout}
